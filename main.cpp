@@ -1,24 +1,31 @@
 #include "elevator.h"
 
-#include <cstdio>
 #include <iostream>
 #include <errno.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <sys/select.h>
 
+//
+// Type of user request
+//   mode : source of request (F - from floor, C - from cabin)
+//   floor: requested floor
+//
 struct UserInput {
-    char mode; // F - from floor, C - from cabin
-    int floor; // requested floor
+    char mode;
+    int floor;
 
     UserInput() { mode = '\0'; floor = 0; }
 };
 
+//
+// Print current cabin state to stdout
+//
 void showCabinState(int floor, CabinState state)
 {
-    // Current floor
+    // Show current floor
     std::cout << "Cabin on floor " << floor << ". ";
 
-    // Cabin state
+    // Show cabin state
     switch (state) {
         case StateStopped:
             std::cout << "Stopped. Doors opened.";
@@ -35,28 +42,59 @@ void showCabinState(int floor, CabinState state)
     }
 
     // Show prompt
-    std::cout << " <Press Enter for command>" << std::endl;
+    std::cout << " <Press any key to enter new command>" << std::endl;
 }
 
+//
+// Read request from stdin
+//
 bool readUserInput(UserInput *data)
 {
-    // Check pointer
+    // Check pointer to data
     if (data == NULL) {
         return false;
     }
 
-    // Read next char
-    int c = getchar();
-    if (c < 0) {
-        std::cout << "Got EOF" << std::endl;
+    // Wait 1 second for command
+    struct timeval tv;
+    fd_set fds;
+    FD_ZERO (&fds);
+    FD_SET (STDIN_FILENO, &fds);
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+    int result = select (STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+
+    // Check for timeout
+    if (result == 0)
+        return false;
+
+    // Parse command
+    char mode = 0;
+    int floor = 0;
+    std::cin >> mode >> floor;
+    //std::cout << "Command type '" << mode << "' (" << floor << ")" << std::endl;
+
+    // Check command type
+    if (mode != 'C' && mode != 'c' && mode != 'F' && mode != 'f') {
+        std::cout << "Wrong mode '" << mode << "' (allowed: 'C', 'F')" << std::endl;
         return false;
     }
-    else {
-        std::cout << "Got char " << c << std::endl;
-        return true;
+
+    // Check floor number
+    if (floor < 1) {
+        std::cout << "Wrong number of floor: " << floor << std::endl;
+        return false;
     }
+
+    // Store result
+    data->mode = mode;
+    data->floor = floor;
+    return true;
 }
 
+//
+// Main
+//
 int main(int argc, char** argv)
 {
     // Request floors count
@@ -68,22 +106,27 @@ int main(int argc, char** argv)
         return -EINVAL;
     }
 
-    // Turn off blocking flag in stdin
-    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-    flags |= O_NONBLOCK;
-    fcntl(0, F_SETFL, flags);
-
     // Create objects
 	Elevator elevator(nFloors);
 
     // Simulation
+    bool showStoppedCabin = true;
     while (1) {
 
-        // Show cabin state
-        showCabinState(elevator.floor(), elevator.state());
+        // Move cabin
+        elevator.doAdvance();
 
-        // Wait for user input
-        sleep(1);
+        // Show cabin state (running --> always, stopped --> once)
+        if (elevator.state() == StateStopped) {
+            if (showStoppedCabin) {
+                showStoppedCabin = false;
+                showCabinState(elevator.floor(), elevator.state());
+            }
+        }
+        else {
+            showStoppedCabin = true;
+            showCabinState(elevator.floor(), elevator.state());
+        }
 
         // Read user input
         UserInput data;
@@ -92,9 +135,6 @@ int main(int argc, char** argv)
             elevator.reqFromCabin(data.floor);
         else if (data.mode == 'f')
             elevator.reqFromFloor(data.floor);
-
-        // Move cabin
-        elevator.doAdvance();
     }
 
 	return 0;

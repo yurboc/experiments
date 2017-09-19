@@ -1,7 +1,7 @@
 #ifndef ELEVATOR_H
 #define ELEVATOR_H
 
-#include <list>    // std::list
+#include <list>
 
 enum CabinState {
     StateUndefined,
@@ -17,8 +17,8 @@ public:
 
     void reqFromCabin(int floor);
     void reqFromFloor(int floor);
-    void doAdvance();
     void doStop();
+    void doAdvance();
 
     int floor() const;
     CabinState state() const;
@@ -28,6 +28,7 @@ private:
     std::list<int> m_reqExt;
 
     CabinState m_state;
+    CabinState m_last;
     int m_maximumFloor;
     int m_currentFloor;
 };
