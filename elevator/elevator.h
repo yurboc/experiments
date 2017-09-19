@@ -1,4 +1,7 @@
-#include <list>
+#ifndef ELEVATOR_H
+#define ELEVATOR_H
+
+#include <list>    // std::list
 
 enum CabinState {
     StateUndefined,
@@ -7,20 +10,26 @@ enum CabinState {
     StateMovingDown
 };
 
-class PLC {
+class Elevator {
 public:
-    PLC();
-    ~PLC();
-    
-    void reqFloorInt(int floor);
-    void reqFloorExt(int floor);
+    Elevator(int nFloors);
+    ~Elevator();
+
+    void reqFromCabin(int floor);
+    void reqFromFloor(int floor);
     void doAdvance();
     void doStop();
-    
-    int getCurrentFloor();
-    CabinState getCabinState();
-    
+
+    int floor() const;
+    CabinState state() const;
+
 private:
-    std::list<int> m_requests;
+    std::list<int> m_reqInt;
+    std::list<int> m_reqExt;
+
     CabinState m_state;
+    int m_maximumFloor;
+    int m_currentFloor;
 };
+
+#endif // ELEVATOR_H
