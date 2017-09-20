@@ -1,18 +1,19 @@
 #include "elevator.h"   // class Elevator
-#include <stdlib.h>     // srand, rand
-#include <time.h>       // time
 #include <cmath>        // abs
 
-Elevator::Elevator(int nFloors)
+Elevator::Elevator(int nFloors, int startFloor)
 {
-    // Initialize random seed
-    srand(time(NULL));
-
     // Save count of floors
     m_maximumFloor = nFloors;
+    if (m_maximumFloor < 1)
+        m_maximumFloor = 1;
 
-    // Set random current floor
-    m_currentFloor = rand() % m_maximumFloor + 1;
+    // Set current floor
+    m_currentFloor = startFloor;
+    if (m_currentFloor < 1)
+        m_currentFloor = 1;
+    if (m_currentFloor > m_maximumFloor)
+        m_currentFloor = m_maximumFloor;
 
     // Set initial state
     m_currentState = StateStopped;

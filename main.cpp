@@ -1,9 +1,11 @@
 #include "elevator.h"
 
-#include <iostream>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/select.h>
+#include <iostream>     // cin, cout
+#include <errno.h>      // EINVAL
+#include <unistd.h>     // STDIN_FILENO
+#include <sys/select.h> // select
+#include <stdlib.h>     // srand, rand
+#include <time.h>       // time
 
 //
 // Type of user request
@@ -107,8 +109,14 @@ int main(int argc, char** argv)
         return -EINVAL;
     }
 
+    // Initialize random seed
+    srand(time(NULL));
+
+    // Set random current floor
+    int startFloor = rand() % nFloors + 1;
+
     // Create objects
-	Elevator elevator(nFloors);
+    Elevator elevator(nFloors, startFloor);
 
     // Simulation
     bool showStoppedCabin = true;

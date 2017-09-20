@@ -30,7 +30,7 @@ struct FloorState {
 //
 class Elevator {
 public:
-    Elevator(int nFloors);
+    Elevator(int nFloors, int startFloor=1);
     ~Elevator();
 
     void reqFromCabin(int floor); // Add request from cabin
