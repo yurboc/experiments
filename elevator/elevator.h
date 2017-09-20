@@ -1,13 +1,19 @@
 #ifndef ELEVATOR_H
 #define ELEVATOR_H
 
-#include <list>
+#include <vector>
 
 enum CabinState {
-    StateUndefined,
     StateStopped,
     StateMovingUp,
     StateMovingDown
+};
+
+struct FloorState {
+    bool reqFromCabin;
+    bool reqUp;
+    bool reqDown;
+    FloorState() : reqFromCabin(false), reqUp(false), reqDown(false) {}
 };
 
 class Elevator {
@@ -17,18 +23,21 @@ public:
 
     void reqFromCabin(int floor);
     void reqFromFloor(int floor);
-    void doStop();
     void doAdvance();
 
     int floor() const;
     CabinState state() const;
 
 private:
-    std::list<int> m_reqInt;
-    std::list<int> m_reqExt;
+    int findNearFloor(bool reqUp, bool reqDown, bool reqInternal,
+                      bool searchUp, bool searchDown) const;
+    void doStartMoving();
+    void doContinueMoving();
+    void doResumeMoving();
 
-    CabinState m_state;
-    CabinState m_last;
+    std::vector<FloorState> m_floors;
+    CabinState m_currentState;
+    CabinState m_globalState;
     int m_maximumFloor;
     int m_currentFloor;
 };

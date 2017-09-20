@@ -72,7 +72,6 @@ bool readUserInput(UserInput *data)
     char mode = 0;
     int floor = 0;
     std::cin >> mode >> floor;
-    //std::cout << "Command type '" << mode << "' (" << floor << ")" << std::endl;
 
     // Check command type
     if (mode != 'C' && mode != 'c' && mode != 'F' && mode != 'f') {
@@ -101,6 +100,8 @@ int main(int argc, char** argv)
     int nFloors = 0;
     std::cout << "How many floors?" << std::endl;
     std::cin >> nFloors;
+
+    // Check floors count
     if (nFloors < 1) {
         std::cout << "Wrong data. Exit." << std::endl;
         return -EINVAL;
